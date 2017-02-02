@@ -1,4 +1,4 @@
-import math, os, sys, pygame, random
+import os, sys, pygame, random
 from pygame.locals import *
 
 pygame.init()
@@ -205,12 +205,19 @@ while not crashed:
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
+    for x in range(0, 20, 1):
+        if sum(b[1] == x for b in blocks) >= 10:
+            for b in blocks:
+                if b[1] == x:
+                    blocks.remove(b)
+                if b[1] < x:
+                    b[1] += 1
     if tetronimo.a[1] > 19 or tetronimo.b[1] > 19 or tetronimo.c[1] > 19 or tetronimo.d[1] > 19:
         tetronimo.rise()
-    if tetronimo.a[1] > 18 or tetronimo.b[1] > 18 or tetronimo.c[1] > 18 or tetronimo.d[1] > 18 and time % 7 == 0:
+    if (tetronimo.a[1] > 18 or tetronimo.b[1] > 18 or tetronimo.c[1] > 18 or tetronimo.d[1] > 18) and time % 40 == 0:
         tetronimo.reset()
     for b in blocks:
-        if acol(b, tetronimo) and time % 7 == 0:
+        if acol(b, tetronimo) and time % 40 == 0:
             tetronimo.reset()
             break
     if pygame.key.get_pressed()[pygame.K_UP] != 0:
