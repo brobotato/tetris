@@ -51,7 +51,7 @@ def acol(a, b):
 
 # returns true if 2 blocks are exaclty on top of eacother
 def intersect(a, b):
-    if b.a == a[:-1] or b.b == a[:-1] or b.c == a[:-1] or b.d == a[:-1]:
+    if b.a == a[:2] or b.b == a[:2] or b.c == a[:2] or b.d == a[:2]:
         return True
     else:
         return False
@@ -144,13 +144,13 @@ block_dict = {}
 
 class tetronimo_obj():
     def __init__(self):
-        self.i = [[4, 0], [4, 1], [4, 2], [4, 3], 'i']
-        self.o = [[4, 0], [5, 0], [4, 1], [5, 1], 'o']
-        self.t = [[4, 0], [5, 0], [6, 0], [5, 1], 't']
-        self.j = [[4, 0], [4, 1], [4, 2], [5, 2], 'j']
-        self.l = [[4, 0], [4, 1], [4, 2], [3, 2], 'l']
-        self.s = [[4, 0], [4, 1], [5, 1], [5, 2], 's']
-        self.z = [[5, 0], [5, 1], [4, 1], [4, 2], 'z']
+        self.i = ([4, 0], [4, 1], [4, 2], [4, 3], 'i')
+        self.o = ([4, 0], [5, 0], [4, 1], [5, 1], 'o')
+        self.t = ([4, 0], [5, 0], [6, 0], [5, 1], 't')
+        self.j = ([4, 0], [4, 1], [4, 2], [5, 2], 'j')
+        self.l = ([4, 0], [4, 1], [4, 2], [3, 2], 'l')
+        self.s = ([4, 0], [4, 1], [5, 1], [5, 2], 's')
+        self.z = ([5, 0], [5, 1], [4, 1], [4, 2], 'z')
         self.x = random.choice([self.i, self.o, self.t, self.j, self.l, self.s, self.z])
         self.a = self.x[0]
         self.b = self.x[1]
@@ -159,10 +159,10 @@ class tetronimo_obj():
         self.color = self.x[4]
 
     def reset(self):
-        blocks.append([self.a[0], self.a[1], self.color])
-        blocks.append([self.b[0], self.b[1], self.color])
-        blocks.append([self.c[0], self.c[1], self.color])
-        blocks.append([self.d[0], self.d[1], self.color])
+        blocks.append([self.a[0], self.a[1], self.color, False])
+        blocks.append([self.b[0], self.b[1], self.color, False])
+        blocks.append([self.c[0], self.c[1], self.color, False])
+        blocks.append([self.d[0], self.d[1], self.color, False])
         self.__init__()
 
     def rotate(self):
@@ -205,13 +205,6 @@ while not crashed:
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
-    for x in range(0, 20, 1):
-        if sum(b[1] == x for b in blocks) >= 10:
-            for b in blocks:
-                if b[1] == x:
-                    blocks.remove(b)
-                if b[1] < x:
-                    b[1] += 1
     if tetronimo.a[1] > 19 or tetronimo.b[1] > 19 or tetronimo.c[1] > 19 or tetronimo.d[1] > 19:
         tetronimo.rise()
     if (tetronimo.a[1] > 18 or tetronimo.b[1] > 18 or tetronimo.c[1] > 18 or tetronimo.d[1] > 18) and time % 40 == 0:
@@ -224,24 +217,35 @@ while not crashed:
         if time % 3 == 0:
             tetronimo.rotate()
     if pygame.key.get_pressed()[pygame.K_LEFT] != 0:
-        if tetronimo.a[0] >= 1 <= tetronimo.b[0] and tetronimo.c[0] >= 1 <= tetronimo.d[0]:
+        if tetronimo.a[0] >= 1 <= tetronimo.b[0] and tetronimo.c[0] >= 1 <= tetronimo.d[0] and time % 3 == 0:
             if not adj_l(tetronimo, blocks):
                 tetronimo.move_left()
     if pygame.key.get_pressed()[pygame.K_RIGHT] != 0:
-        if tetronimo.a[0] <= 8 >= tetronimo.b[0] and tetronimo.c[0] <= 8 >= tetronimo.d[0]:
+        if tetronimo.a[0] <= 8 >= tetronimo.b[0] and tetronimo.c[0] <= 8 >= tetronimo.d[0] and time % 3 == 0:
             if not adj_r(tetronimo, blocks):
                 tetronimo.move_right()
     if pygame.key.get_pressed()[pygame.K_DOWN] != 0:
         if time % 3 == 0:
-            tetronimo.fall()
+            if tetronimo.a[1] < 19 and tetronimo.b[1] < 19 and tetronimo.c[1] < 19 and tetronimo.d[1] < 19:
+                tetronimo.fall()
     if time % 30 == 0 and pygame.key.get_pressed()[pygame.K_DOWN] == 0:
         tetronimo.fall()
+    for x in range(0, 20, 1):
+        if sum(b[1] == x for b in blocks) >= 10:
+            for b in blocks:
+                if b[1] == x:
+                    b[3] = True
+                elif b[1] < x:
+                    b[1] += 1
     for b in blocks:
-        render(b[0], b[1], img_dict[b[2]])
-        if intersect(b, tetronimo):
-            tetronimo.rise()
-        if b[1] < 1:
-            crashed = True
+        if b[3]:
+            blocks.remove(b)
+        else:
+            render(b[0], b[1], img_dict[b[2]])
+            if intersect(b, tetronimo):
+                tetronimo.rise()
+            if b[1] < 1:
+                crashed = True
     render(tetronimo.a[0], tetronimo.a[1], img_dict[tetronimo.color])
     render(tetronimo.b[0], tetronimo.b[1], img_dict[tetronimo.color])
     render(tetronimo.c[0], tetronimo.c[1], img_dict[tetronimo.color])
