@@ -151,22 +151,28 @@ class tetronimo_obj():
         self.l = ([4, 0], [4, 1], [4, 2], [3, 2], 'l')
         self.s = ([4, 0], [4, 1], [5, 1], [5, 2], 's')
         self.z = ([5, 0], [5, 1], [4, 1], [4, 2], 'z')
-        self.x = random.choice([self.i, self.o, self.t, self.j, self.l, self.s, self.z])
+        self.x = random.choice([self.i])  # , self.o, self.t, self.j, self.l, self.s, self.z])
         self.a = self.x[0]
         self.b = self.x[1]
         self.c = self.x[2]
         self.d = self.x[3]
         self.color = self.x[4]
 
+    def render(self):
+        render(self.a[0], self.a[1], img_dict[self.color])
+        render(self.b[0], self.b[1], img_dict[self.color])
+        render(self.c[0], self.c[1], img_dict[self.color])
+        render(self.d[0], self.d[1], img_dict[self.color])
+
     def reset(self):
-        blocks.append([self.a[0], self.a[1], self.color, False])
-        blocks.append([self.b[0], self.b[1], self.color, False])
-        blocks.append([self.c[0], self.c[1], self.color, False])
-        blocks.append([self.d[0], self.d[1], self.color, False])
+        blocks.append([self.a[0], self.a[1], self.color, False, 0])
+        blocks.append([self.b[0], self.b[1], self.color, False, 0])
+        blocks.append([self.c[0], self.c[1], self.color, False, 0])
+        blocks.append([self.d[0], self.d[1], self.color, False, 0])
         self.__init__()
 
     def rotate(self):
-        if self.color != 'o':
+        if self.color != 'o' and 0 < self.b[0] < 9:
             rotate(self.a, self.b)
             rotate(self.c, self.b)
             rotate(self.d, self.b)
@@ -205,6 +211,10 @@ while not crashed:
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
+    if tetronimo.a[0] > 9 or tetronimo.b[0] > 9 or tetronimo.c[0] > 9 or tetronimo.d[0] > 9:
+        tetronimo.move_left()
+    if tetronimo.a[0] < 0 or tetronimo.b[0] < 0 or tetronimo.c[0] < 0 or tetronimo.d[0] < 0:
+        tetronimo.move_right()
     if tetronimo.a[1] > 19 or tetronimo.b[1] > 19 or tetronimo.c[1] > 19 or tetronimo.d[1] > 19:
         tetronimo.rise()
     if (tetronimo.a[1] > 18 or tetronimo.b[1] > 18 or tetronimo.c[1] > 18 or tetronimo.d[1] > 18) and time % 40 == 0:
@@ -224,10 +234,9 @@ while not crashed:
         if tetronimo.a[0] <= 8 >= tetronimo.b[0] and tetronimo.c[0] <= 8 >= tetronimo.d[0] and time % 3 == 0:
             if not adj_r(tetronimo, blocks):
                 tetronimo.move_right()
-    if pygame.key.get_pressed()[pygame.K_DOWN] != 0:
-        if time % 3 == 0:
-            if tetronimo.a[1] < 19 and tetronimo.b[1] < 19 and tetronimo.c[1] < 19 and tetronimo.d[1] < 19:
-                tetronimo.fall()
+    if pygame.key.get_pressed()[pygame.K_DOWN] != 0 and time % 3 == 0:
+        if tetronimo.a[1] < 19 and tetronimo.b[1] < 19 and tetronimo.c[1] < 19 and tetronimo.d[1] < 19:
+            tetronimo.fall()
     if time % 30 == 0 and pygame.key.get_pressed()[pygame.K_DOWN] == 0:
         tetronimo.fall()
     for x in range(0, 20, 1):
@@ -235,8 +244,10 @@ while not crashed:
             for b in blocks:
                 if b[1] == x:
                     b[3] = True
+                    b[4] = -20
                 elif b[1] < x:
-                    b[1] += 1
+                    b[3] = False
+                    b[4] += 1
     for b in blocks:
         if b[3]:
             blocks.remove(b)
@@ -244,12 +255,12 @@ while not crashed:
             render(b[0], b[1], img_dict[b[2]])
             if intersect(b, tetronimo):
                 tetronimo.rise()
+            if b[4] > 0:
+                b[1] += b[4]
+                b[4] = 0
             if b[1] < 1:
                 crashed = True
-    render(tetronimo.a[0], tetronimo.a[1], img_dict[tetronimo.color])
-    render(tetronimo.b[0], tetronimo.b[1], img_dict[tetronimo.color])
-    render(tetronimo.c[0], tetronimo.c[1], img_dict[tetronimo.color])
-    render(tetronimo.d[0], tetronimo.d[1], img_dict[tetronimo.color])
+    tetronimo.render()
     time += 1
     pygame.display.update()
     fps_clock.tick(30)
